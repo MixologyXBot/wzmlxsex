@@ -72,9 +72,13 @@ async def send_message(message, text, buttons=None, block=True, photo=None, **kw
             except Exception:
                 LOGGER.error("Error while sending photo", exc_info=True)
                 return
-        if isinstance(message, int):
+        if isinstance(message, (int, str)):
+            try:
+                chat_id = int(message)
+            except (ValueError, TypeError):
+                chat_id = message
             return await TgClient.bot.send_message(
-                chat_id=message,
+                chat_id=chat_id,
                 text=text,
                 disable_web_page_preview=True,
                 disable_notification=True,
@@ -100,8 +104,12 @@ async def send_message(message, text, buttons=None, block=True, photo=None, **kw
     except (MessageEmpty, EntityBoundsInvalid):
         return await send_message(message, text, parse_mode=ParseMode.DISABLED)
     except PeerIdInvalid:
-        if isinstance(message, int):
-            await TgClient.bot.resolve_peer(message)
+        if isinstance(message, (int, str)):
+            try:
+                chat_id = int(message)
+            except (ValueError, TypeError):
+                chat_id = message
+            await TgClient.bot.resolve_peer(chat_id)
             return await send_message(message, text, buttons, block, photo)
         raise
     except Exception as e:

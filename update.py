@@ -88,6 +88,12 @@ if DATABASE_URL := config_file.get("DATABASE_URL", "").strip():
 UPSTREAM_REPO = config_file.get("UPSTREAM_REPO", "").strip()
 UPSTREAM_BRANCH = config_file.get("UPSTREAM_BRANCH", "").strip() or "wzv3"
 
+# Save local config.py before upstream update to preserve deployment config
+local_config_content = None
+if path.exists("config.py"):
+    with open("config.py", "r") as f:
+        local_config_content = f.read()
+
 if UPSTREAM_REPO:
     if path.exists(".git"):
         srun(["rm", "-rf", ".git"])
@@ -103,6 +109,11 @@ if UPSTREAM_REPO:
                      && git reset --hard origin/{UPSTREAM_BRANCH} -q"],
         shell=True,
     )
+
+    # Restore local config.py after upstream update to preserve deployment config
+    if local_config_content is not None:
+        with open("config.py", "w") as f:
+            f.write(local_config_content)
 
     repo = UPSTREAM_REPO.split("/")
     UPSTREAM_REPO = f"https://github.com/{repo[-2]}/{repo[-1]}"

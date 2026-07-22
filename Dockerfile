@@ -1,4 +1,4 @@
-FROM pysocks/wzml:v3
+FROM jockerxbro/wz:latest
 
 WORKDIR /usr/src/app
 
